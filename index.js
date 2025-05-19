@@ -1,5 +1,5 @@
 // NPM modules
-var home = require('os').homedir();
+var home = require('os').homedir() + '/emulatorjs';
 var socketIO = require('socket.io');
 var fs = require('fs');
 var fsw = require('fs').promises;
@@ -15,6 +15,47 @@ var { create } = require('ipfs-http-client');
 var crypto = require('crypto');
 var ipfs = create();
 var merge = require('deepmerge');
+const session = require('express-session');
+const sharedSession = require('express-socket.io-session');
+
+// 1. 只创建一次 sessionMiddleware
+const sessionMiddleware = session({
+  secret: 'emulatorjs_secret_key',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false }
+});
+app.use(sessionMiddleware);
+
+
+// 登录接口
+baserouter.post('/login', express.json(), async (req, res) => {
+  const { username, password } = req.body;
+  const profilesData = await fsw.readFile(home + '/profile/profile.json', 'utf8');
+  const profilesJson = JSON.parse(profilesData);
+  let found = false;
+  for (const hash of Object.keys(profilesJson)) {
+    if (profilesJson[hash].username === username) {
+      // 校验密码
+      const cryptoHash = crypto.createHash('sha256').update(username + password).digest('hex');
+      if (cryptoHash === hash) {
+        req.session.user = username;
+        found = true;
+        break;
+      }
+    }
+  }
+  if (found) {
+    res.json({ success: true, user: username });
+  } else {
+    res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+  // const { username, password } = req.body;
+  // req.session.user = req.body.username;
+  // req.session.save(() => {
+  //   res.json({ success: true, user: req.body.username });
+  // });
+});
 
 // Default vars
 if (home == '/data') {
@@ -80,6 +121,7 @@ app.use(function(req, res, next) {
 });
 
 //// Http server ////
+baserouter.use('/login', express.static(__dirname + '/login'));
 baserouter.use('/public', express.static(__dirname + '/public'));
 baserouter.use('/frontend', express.static(__dirname + '/frontend'));
 baserouter.get("/", function (req, res) {
@@ -89,7 +131,18 @@ app.use(baseUrl, baserouter);
 http.listen(3000);
 
 //// socketIO comms ////
-io = socketIO(http, {path: baseUrl + 'socket.io',maxHttpBufferSize: 100000000});
+io = socketIO(http, {path: '/socket.io',maxHttpBufferSize: 100000000, withCredentials: true});
+
+// 用同一个 sessionMiddleware 给 socket.io 用
+io.use(sharedSession(sessionMiddleware, { autoSave: true }));
+
+io.use((socket, next) => {
+  if (socket.handshake.session && socket.handshake.session.user) {
+    next(); // 认证通过
+  } else {
+    next(new Error('Unauthorized' + ' ' + socket.handshake.session.user)); // 认证失败
+  }
+});
 io.on('connection', async function (socket) {
   //// Functions ////
   // Send config list to client

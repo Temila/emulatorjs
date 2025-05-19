@@ -690,6 +690,19 @@ async function loadjson(name, active_item) {
   rendermenu([data, active_item]);
 }
 
+var host = window.location.hostname; 
+var port = window.location.port;
+var protocol = window.location.protocol;
+var socket = io(protocol + '//' + host + ':' + port, {
+  path: '/socket.io',
+  withCredentials: true
+});
+
+socket.on('connect_error', function(err) {
+  // 未认证，自动跳转到登录页，并带上重定向参数
+  var redirect = encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+  window.location.href = '/login/index.html?redirect=' + redirect;
+});
 window.onload = function() {
   if (! window.location.hash) {
     loadjson('main');

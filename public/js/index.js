@@ -2,7 +2,12 @@ var host = window.location.hostname;
 var port = window.location.port;
 var protocol = window.location.protocol;
 var path = window.location.pathname;
-var socket = io(protocol + '//' + host + ':' + port, { path: path + 'socket.io'});
+var socket = io({ path: '/socket.io', withCredentials: true });
+
+socket.on('connect_error', function(err) {
+  // 未认证自动跳转到登录页
+  window.location.href = '/login/index.html';
+});
 
 //// Socket recieves ////
 // Render config
