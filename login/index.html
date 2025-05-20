@@ -15,45 +15,110 @@
       justify-content: center;
       font-family: "Segoe UI", Arial, sans-serif;
     }
-    .login-box {
+    .monitor-frame {
       background: #222;
-      padding: 32px 28px 24px 28px;
-      border-radius: 10px;
-      box-shadow: 0 4px 24px #0008;
+      border: 12px solid #888;
+      border-radius: 24px 24px 40px 40px/24px 24px 60px 60px;
+      box-shadow:
+        0 8px 32px #000a,
+        0 0 0 8px #444 inset,
+        0 0 80px #222 inset;
+      /* 固定4:3比例 */
+      width: 800px;
+      aspect-ratio: 4 / 3;
       min-width: 320px;
+      max-width: 90vw;
+      min-height: 300px;
+      max-height: 80vh;
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative;
+      padding: 32px 28px 40px 28px;
+      box-sizing: border-box;
+    }
+    .monitor-base {
+      position: absolute;
+      left: 50%;
+      bottom: -38px;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 32px;
+      background: #666;
+      border-radius: 0 0 32px 32px/0 0 40px 40px;
+      box-shadow: 0 8px 16px #0007;
+      z-index: 1;
+    }
+    .login-box {
+      background: #222;
+      padding: 0;
+      border-radius: 0;
+      box-shadow: none;
+      min-width: 0;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      height: 100%;
+      justify-content: center;
     }
     .login-box h2 {
       color: #fff;
       margin-bottom: 24px;
       font-weight: 400;
+      margin-top: 24px;
     }
     .login-box input {
-      width: 100%;
+      width: 50%;
+      min-width: 120px;
       padding: 10px;
       margin-bottom: 16px;
-      border: none;
-      border-radius: 4px;
-      background: #333;
-      color: #fff;
+      border: 2px solid #00ff99;
+      border-radius: 0;
+      background: #111;
+      color: #00ff99;
       font-size: 16px;
       outline: none;
+      font-family: 'Fira Mono', 'Consolas', 'Courier New', Courier, monospace;
+      box-shadow: 0 0 8px #00ff9955 inset;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .login-box input:focus {
+      border-color: #fff200;
+      box-shadow: 0 0 12px #fff20088 inset;
+      background: #181818;
+      color: #fff200;
     }
     .login-box button {
-      width: 100%;
+      width: 50%;
+      min-width: 120px;
       padding: 10px 0;
-      background: #0078d7;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
+      background: #111;
+      color: #00ff99;
+      border: 2px solid #00ff99;
+      border-radius: 0;
       font-size: 16px;
+      font-family: 'Fira Mono', 'Consolas', 'Courier New', Courier, monospace;
       cursor: pointer;
-      transition: background 0.2s;
+      box-shadow: 0 0 8px #00ff9955 inset;
+      transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+      margin-top: 8px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
-    .login-box button:hover {
-      background: #005fa3;
+    .login-box button:hover, .login-box button:focus {
+      background: #181818;
+      color: #fff200;
+      border-color: #fff200;
+      box-shadow: 0 0 12px #fff20088 inset;
     }
     .error-msg {
       color: #ff4d4f;
@@ -64,13 +129,41 @@
   </style>
 </head>
 <body>
-  <form class="login-box" id="loginForm">
-    <h2>用户登录</h2>
-    <div class="error-msg" id="login-error"></div>
-    <input type="text" id="username" placeholder="用户名" required autocomplete="username">
-    <input type="password" id="password" placeholder="密码" required autocomplete="current-password">
-    <button type="submit">登录</button>
-  </form>
+  <div class="monitor-frame">
+  <!-- <div> -->
+    <!-- 复古LOGO开始 -->
+    <div style="width:100%;display:flex;justify-content:center;margin-bottom:8px;">
+      <pre style="
+        font-family: 'Fira Mono', 'Consolas', 'Courier New', Courier, monospace;
+        font-size: 1.2rem;
+        color: #00ff99;
+        text-shadow:
+          0 0 6px #00ff99,
+          0 0 12px #007755,
+          2px 2px 0 #111,
+          0 2px 8px #00ff99;
+        user-select: none;
+        margin-top: 12px;
+        margin-bottom: 8px;
+        line-height: 1.2;
+        text-align: center;
+      ">
+   ___      __           ______       __  _         
+  / _ \___ / /________  / __/ /____ _/ /_(_)__  ___ 
+ / , _/ -_/ __/ __/ _ \_\ \/ __/ _ `/ __/ / _ \/ _ \
+/_/|_|\__/\__/_/  \___/___/\__/\_,_/\__/_/\___/_//_/
+                                       
+  </pre>
+    </div>
+    <!-- 复古LOGO结束 -->
+    <form class="login-box" id="loginForm">
+      <div class="error-msg" id="login-error"></div>
+      <input type="text" id="username" placeholder="用户名" required autocomplete="username">
+      <input type="password" id="password" placeholder="密码" required autocomplete="current-password">
+      <button type="submit">登录</button>
+    </form>
+    <div class="monitor-base"></div>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script src="/login/js/index.js"></script>
 </body>
