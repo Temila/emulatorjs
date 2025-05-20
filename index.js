@@ -1,5 +1,8 @@
 // NPM modules
+// use this while developing
 var home = require('os').homedir() + '/emulatorjs';
+// use this in production
+// var home = require('os').homedir();
 var socketIO = require('socket.io');
 var fs = require('fs');
 var fsw = require('fs').promises;
@@ -841,6 +844,65 @@ baserouter.use('/files', cloudcmd({
 }));
 
 // Cloudcmd File browser profile
+// 先注册自定义接口
+baserouter.post('/profile/change-password', express.json(), async (req, res) => {
+  // 只允许已登录用户修改自己的密码
+  if (!req.session.user) {
+    return res.status(401).json({ success: false, message: 'Not logged in' });
+  }
+  const { username, oldPassword, newPassword } = req.body;
+  // 只允许本人修改自己的密码
+  if (username !== req.session.user) {
+    return res.status(403).json({ success: false, message: 'You can only change your own password.' });
+  }
+  const profilesPath = home + '/profile/profile.json';
+  let profilesData;
+  try {
+    profilesData = await fsw.readFile(profilesPath, 'utf8');
+  } catch (e) {
+    return res.json({ success: false, message: 'Profile data not found.' });
+  }
+  let profilesJson;
+  try {
+    profilesJson = JSON.parse(profilesData);
+  } catch (e) {
+    return res.json({ success: false, message: 'Profile data corrupted.' });
+  }
+
+  // 查找当前用户的hash
+  let userHash = null;
+  for (const hash of Object.keys(profilesJson)) {
+    if (profilesJson[hash].username === username) {
+      userHash = hash;
+      break;
+    }
+  }
+  if (!userHash) {
+    return res.json({ success: false, message: 'User not found.' });
+  }
+
+  // 校验旧密码
+  const oldHash = crypto.createHash('sha256').update(username + oldPassword).digest('hex');
+  if (oldHash !== userHash) {
+    return res.json({ success: false, message: 'Current password incorrect.' });
+  }
+
+  // 更新密码
+  const newHash = crypto.createHash('sha256').update(username + newPassword).digest('hex');
+  profilesJson[newHash] = { ...profilesJson[userHash], username: username };
+  delete profilesJson[userHash];
+  try {
+    await fsw.writeFile(profilesPath, JSON.stringify(profilesJson, null, 2));
+    // 清除session并强制重新登录
+    req.session.destroy(() => {
+      res.json({ success: true, relogin: true });
+    });
+  } catch (e) {
+    res.json({ success: false, message: 'Failed to save new password.' });
+  }
+});
+
+// 再注册 cloudcmd
 baserouter.use('/profile', cloudcmd({
   config: {
     root: home + '/profile',

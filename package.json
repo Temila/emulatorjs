@@ -5,7 +5,7 @@
   "main": "index.js",
   "author": "thelamer",
   "dependencies": {
-    "cloudcmd": "^15.9.14",
+    "cloudcmd": "^15.9.15",
     "deepmerge": "^4.2.2",
     "express": "^4.21.2",
     "express-session": "^1.18.1",

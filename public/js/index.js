@@ -516,6 +516,24 @@ function renderFileBrowser(dir) {
   $('#main').append(browser);
 }
 
+// Create a profile
+function createProfile() {
+  let user = $('#user').val();
+  let pass = $('#pass').val();
+  $('#main').empty();
+  $('#side').empty();
+  $('#main').append('<div class="loader"></div>');
+  socket.emit('createprofile', [user,pass]);
+}
+
+// Delete a profile
+function deleteProfile(user) {
+  $('#main').empty();
+  $('#side').empty();
+  $('#main').append('<div class="loader"></div>');
+  socket.emit('deleteprofile', user);
+}
+
 // Render profiles
 function renderProfiles(profiles) {
   $('#side').empty();
@@ -540,33 +558,89 @@ function renderUserProfile(dir) {
   $('#main').empty();
   $('#nav-buttons').empty();
   var url = window.location.href;
-  if (! url.endsWith('/')) {
-    var url = url + '/';
-  };
+  if (!url.endsWith('/')) {
+    url = url + '/';
+  }
   var browser = $('<iframe>').attr('src', url + 'profile/fs/' + dir).addClass('browser');
   $('#main').append(browser);
-  // Delete Button
-  if (dir !== 'default') {
-    var deleteButton = $('<button>').addClass('button hover').attr('onclick', 'deleteProfile(\'' + dir + '\')').text('Delete ' + dir);
-    $('#nav-buttons').append(deleteButton);
+
+  // 如果不是 default 且不是 admin，显示删除按钮
+  if (dir !== 'default' && dir !== 'admin') {
+    var deleteButton = $('<button>')
+      .addClass('button hover')
+      .attr('onclick', 'deleteProfile("' + dir + '")')
+      .text('Delete ' + dir);
+
+    // 修改密码按钮
+    var changePwdButton = $('<button>')
+      .addClass('button hover')
+      .css({ 'margin-left': '12px' })
+      .text('Change Password')
+      .attr('onclick', 'showChangePasswordModal("' + dir + '")');
+
+    $('#nav-buttons').append(deleteButton, changePwdButton);
+  } else if (dir !== 'default' && dir === 'admin') {
+    // 仅显示修改密码按钮
+    var changePwdButton = $('<button>')
+      .addClass('button hover')
+      .css({ 'margin-left': '12px' })
+      .text('Change Password')
+      .attr('onclick', 'showChangePasswordModal("' + dir + '")');
+    $('#nav-buttons').append(changePwdButton);
   }
 }
 
-// Create a blank profile
-function createProfile() {
-  let user = $('#user').val();
-  let pass = $('#pass').val();
-  $('#main').empty();
-  $('#side').empty();
-  $('#main').append('<div class="loader"></div>');
-  socket.emit('createprofile', [user,pass]);
-}
+// 新增：显示修改密码弹窗
+function showChangePasswordModal(username) {
+  // 如果已存在弹窗，先移除
+  $('#change-password-modal').remove();
+  var modal = $(`
+    <div id="change-password-modal" class="modal" style="position:fixed;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.4);display:flex;align-items:center;justify-content:center;z-index:1000;">
+      <div class="modal-content" style="background:#222;padding:24px 18px 18px 18px;border-radius:8px;box-shadow:0 4px 24px #000a;max-width:340px;">
+        <h3 style="color:#00ff99;">Change Password for ${username}</h3>
+        <div id="change-password-error" style="color:#ff4d4f;min-height:20px;"></div>
+        <input type="password" id="old-password" placeholder="Current Password" style="width:100%;margin-bottom:8px;">
+        <input type="password" id="new-password" placeholder="New Password" style="width:100%;margin-bottom:8px;">
+        <input type="password" id="confirm-password" placeholder="Confirm New Password" style="width:100%;margin-bottom:12px;">
+        <button id="submit-change-password" style="width:100%;">Submit</button>
+        <button id="cancel-change-password" style="width:100%;margin-top:6px;">Cancel</button>
+      </div>
+    </div>
+  `);
+  $('body').append(modal);
 
-// Delete a profile
-function deleteProfile(user) {
-  $('#main').empty();
-  $('#side').empty();
-  $('#main').append('<div class="loader"></div>');
-  socket.emit('deleteprofile', user);
+  $('#cancel-change-password').on('click', function() {
+    $('#change-password-modal').remove();
+  });
+
+  $('#submit-change-password').on('click', async function() {
+    const oldPassword = $('#old-password').val();
+    const newPassword = $('#new-password').val();
+    const confirmPassword = $('#confirm-password').val();
+    const errorDiv = $('#change-password-error');
+    errorDiv.text('');
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      errorDiv.text('All fields are required.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      errorDiv.text('New passwords do not match.');
+      return;
+    }
+    // 调用后端API
+    const res = await fetch('/profile/change-password', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ username, oldPassword, newPassword }),
+      credentials: 'include'
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Password changed successfully!');
+      $('#change-password-modal').remove();
+    } else {
+      errorDiv.text(data.message || 'Password change failed.');
+    }
+  });
 }
 
