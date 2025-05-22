@@ -1,8 +1,8 @@
 // NPM modules
 // use this while developing
-var home = require('os').homedir() + '/emulatorjs';
+// var home = require('os').homedir() + '/emulatorjs';
 // use this in production
-// var home = require('os').homedir();
+var home = require('os').homedir();
 var socketIO = require('socket.io');
 var fs = require('fs');
 var fsw = require('fs').promises;
@@ -26,7 +26,11 @@ const sessionMiddleware = session({
   secret: 'emulatorjs_secret_key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: {
+    secure: false,
+    maxAge: 30 * 60 * 1000 // 30分钟
+  },
+  rolling: true // 每次请求刷新过期时间
 });
 app.use(sessionMiddleware);
 
