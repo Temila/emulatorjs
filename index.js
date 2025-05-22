@@ -1,8 +1,8 @@
 // NPM modules
 // use this while developing
-//var home = require('os').homedir() + '/emulatorjs';
+var home = require('os').homedir() + '/emulatorjs';
 // use this in production
-var home = require('os').homedir();
+// var home = require('os').homedir();
 var socketIO = require('socket.io');
 var fs = require('fs');
 var fsw = require('fs').promises;
@@ -919,3 +919,12 @@ baserouter.use('/profile', cloudcmd({
     zip: false
   }
 }));
+
+baserouter.get('/whoami', (req, res) => {
+  res.json({ user: req.session.user || null });
+});
+baserouter.post('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.json({ success: true });
+  });
+});

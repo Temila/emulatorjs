@@ -11,9 +11,56 @@
     <script src="js/vendor/jquery.min.js"></script>
     <script src="js/vendor/hammer.min.js"></script>
     <script src="js/index.js"></script>
+    <style>
+      #user-info {
+        position: absolute;
+        top: 16px;
+        right: 24px;
+        z-index: 2000;
+        font-family: 'Fira Mono', Consolas, monospace;
+        display: flex;
+        align-items: center;
+        background: rgba(24,24,24,0.85);
+        border-radius: 6px;
+        padding: 4px 12px;
+        box-shadow: 0 2px 8px #0004;
+      }
+      #current-user {
+        color: #00ff99;
+        margin-right: 10px;
+      }
+      #logout-btn {
+        padding: 2px 12px;
+        background: #222;
+        color: #fff;
+        border: 1px solid #00ff99;
+        cursor: pointer;
+        border-radius: 4px;
+        font-size: 1em;
+      }
+      #logout-btn:hover {
+        background: #181818;
+        color: #fff200;
+        border-color: #fff200;
+      }
+    </style>
   </head>
   <body>
     <div id="menu">
+      <!-- 用户信息模块 -->
+      <div id="user-info" style="display:none;">
+        <span id="user-settings" style="cursor:pointer;display:flex;align-items:center;margin-right:6px;">
+          <!-- SVG 齿轮图标 -->
+          <svg width="18" height="18" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+            <g>
+              <circle cx="10" cy="10" r="3" stroke="#00ff99" stroke-width="2" fill="none"/>
+              <path d="M10 2v2M10 16v2M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42M2 10h2M16 10h2M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42" stroke="#00ff99" stroke-width="2" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </span>
+        <span id="current-user"></span>
+        <button id="logout-btn">Logout</button>
+      </div>
       <a target="_blank" href="filebrowser.html">
         <img class="file-button" src="css/folder.svg"/>
       </a>
@@ -29,5 +76,38 @@
       </div>
       <div id="games-list" class="hidden"></div>
     </div>
+    <script>
+      // 获取当前用户
+      async function fetchCurrentUser() {
+        try {
+          const res = await fetch('/whoami', { credentials: 'include' });
+          const data = await res.json();
+          if (data.user) {
+            $('#current-user').text('👤 ' + data.user);
+            $('#user-info').show();
+          } else {
+            $('#user-info').hide();
+          }
+        } catch (e) {
+          $('#user-info').hide();
+        }
+      }
+
+      // 注销
+      $('#logout-btn').on('click', async function() {
+        await fetch('/logout', { method: 'POST', credentials: 'include' });
+        window.location.href = '/login/index.html';
+      });
+
+      // 齿轮点击跳转到首页
+      $('#user-settings').on('click', function() {
+        window.location.href = '/';
+      });
+
+      // 页面加载时获取用户
+      $(function() {
+        fetchCurrentUser();
+      });
+    </script>
   </body>
 </html>

@@ -644,3 +644,30 @@ function showChangePasswordModal(username) {
   });
 }
 
+// 获取当前用户
+async function fetchCurrentUser() {
+  try {
+    const res = await fetch('/whoami', { credentials: 'include' });
+    const data = await res.json();
+    if (data.user) {
+      $('#current-user').text('👤 ' + data.user);
+      $('#user-info').show();
+    } else {
+      $('#user-info').hide();
+    }
+  } catch (e) {
+    $('#user-info').hide();
+  }
+}
+
+// 注销
+$('#logout-btn').on('click', async function() {
+  await fetch('/logout', { method: 'POST', credentials: 'include' });
+  window.location.href = '/login/index.html';
+});
+
+// 页面加载时获取用户
+$(function() {
+  fetchCurrentUser();
+});
+

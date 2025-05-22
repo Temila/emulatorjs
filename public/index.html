@@ -14,6 +14,30 @@
         <div onclick="renderMeta()" class="top-item">Custom Metadata</div>
       </div>
       <div id="nav-buttons" class="nav-buttons"></div>
+      <!-- 用户信息模块 -->
+      <div id="user-info"
+           style="position:absolute;top:12px;right:24px;z-index:1000;font-family:'Fira Mono',Consolas,monospace;display:flex;align-items:center;">
+        <span id="user-gamepad" style="cursor:pointer;display:flex;align-items:center;margin-right:8px;">
+          <!-- SVG 游戏手柄图标 -->
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" style="vertical-align:middle;" xmlns="http://www.w3.org/2000/svg">
+            <rect x="2" y="8" width="16" height="6" rx="3" fill="#222" stroke="#00ff99" stroke-width="2"/>
+            <circle cx="6.5" cy="11" r="1" fill="#00ff99"/>
+            <circle cx="13.5" cy="11" r="1" fill="#00ff99"/>
+            <rect x="9" y="9.5" width="2" height="3" rx="1" fill="#00ff99"/>
+          </svg>
+        </span>
+        <span id="current-user" style="color:#00ff99;"></span>
+        <button id="logout-btn"
+                style="margin-left:12px;padding:2px 12px;background:#222;color:#fff;border:1px solid #00ff99;cursor:pointer;border-radius:4px;">
+          Logout
+        </button>
+      </div>
+      <script>
+        // 游戏手柄点击跳转到 /frontend
+        document.getElementById('user-gamepad').onclick = function() {
+          window.location.href = '/frontend';
+        };
+      </script>
     </div>
     <div class="page-container">
       <div id="side"></div>
